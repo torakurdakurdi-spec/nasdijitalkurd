@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ku">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Nasnameya Dîjîtal Ya Kurdî</title>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<style>
+
+body{
+    font-family: Arial;
+    background:#0d0d0d;
+    color:white;
+    text-align:center;
+    padding:30px;
+}
+
+h1{
+    margin-bottom:25px;
+}
+
+.card-box{
+    background:#1b1b1b;
+    padding:25px;
+    width:320px;
+    margin:auto;
+    border-radius:15px;
+}
+
+input{
+    width:100%;
+    padding:10px;
+    margin:10px 0;
+    border:none;
+    border-radius:6px;
+}
+
+button{
+    width:100%;
+    padding:12px;
+    background:#ffd700;
+    border:none;
+    font-weight:bold;
+    border-radius:8px;
+    cursor:pointer;
+    margin-top:10px;
+}
+
+.id-card{
+    margin-top:30px;
+    background:linear-gradient(135deg,#222,#333);
+    padding:20px;
+    border-radius:15px;
+    width:320px;
+    margin-left:auto;
+    margin-right:auto;
+}
+
+#qrcode{
+    margin-top:15px;
+}
+
+.identity-page{
+    display:none;
+    margin-top:30px;
+    padding:20px;
+    background:#111;
+    border-radius:15px;
+}
+
+</style>
+</head>
+
+<body>
+
+<h1>Nasnameya Dîjîtal Ya Kurdî</h1>
+
+<div class="card-box">
+
+<label>Navê Xwe Binivîse :</label>
+<input id="name">
+
+<label>Paşnavê Xwe Binivîse :</label>
+<input id="surname">
+
+<button onclick="createID()">Create ID</button>
+
+</div>
+
+<div id="card" class="id-card" style="display:none;">
+<h2>Dîjîtal ID</h2>
+<p id="cardName"></p>
+<p id="cardSerial"></p>
+<div id="qrcode"></div>
+</div>
+
+<div id="identityPage" class="identity-page"></div>
+
+<script>
+
+// ---------------- SERIAL GENERATOR ----------------
+
+function generateSerial(){
+ return "NDK-" + Math.floor(Math.random()*999999999);
+}
+
+// ---------------- DATABASE SIMULATION ----------------
+
+function saveUser(data){
+ localStorage.setItem(data.serial, JSON.stringify(data));
+}
+
+function getUser(serial){
+ return JSON.parse(localStorage.getItem(serial));
+}
+
+// ---------------- CREATE DIGITAL ID ----------------
+
+function createID(){
+
+ let name = document.getElementById("name").value;
+ let surname = document.getElementById("surname").value;
+
+ if(!name || !surname){
+  alert("Fill all fields");
+  return;
+ }
+
+ let serial = generateSerial();
+
+ let userData = {name,surname,serial};
+
+ saveUser(userData);
+
+ showCard(userData);
+}
+
+// ---------------- SHOW DIGITAL CARD ----------------
+
+function showCard(data){
+
+ document.getElementById("card").style.display="block";
+
+ document.getElementById("cardName").innerText =
+  data.name + " " + data.surname;
+
+ document.getElementById("cardSerial").innerText =
+  "Serial: " + data.serial;
+
+ document.getElementById("qrcode").innerHTML="";
+
+ let link = location.href + "?id=" + data.serial;
+
+ new QRCode(document.getElementById("qrcode"),{
+  text:link,
+  width:180,
+  height:180
+ });
+}
+
+// ---------------- IDENTITY PAGE ----------------
+
+function loadIdentity(){
+
+ let params = new URLSearchParams(window.location.search);
+ let id = params.get("id");
+
+ if(!id) return;
+
+ let user = getUser(id);
+ if(!user) return;
+
+ document.getElementById("identityPage").style.display="block";
+
+ document.getElementById("identityPage").innerHTML=`
+   <h2>Dîjîtal Identity</h2>
+   <p>Name: ${user.name}</p>
+   <p>Surname: ${user.surname}</p>
+   <p>Serial: ${user.serial}</p>
+ `;
+}
+
+loadIdentity();
+
+</script>
+
+</body>
+</html>
